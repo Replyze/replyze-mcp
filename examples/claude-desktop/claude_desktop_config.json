@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "replyze": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://client.replyze.chat/api/mcp", "--header", "Authorization:${REPLYZE_AUTH}"],
+      "env": { "REPLYZE_AUTH": "Bearer YOUR_API_KEY" }
+    }
+  }
+}

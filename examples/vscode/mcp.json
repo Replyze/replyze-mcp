@@ -1,0 +1,12 @@
+{
+  "inputs": [
+    { "type": "promptString", "id": "replyze-api-key", "description": "Replyze API key", "password": true }
+  ],
+  "servers": {
+    "replyze": {
+      "type": "http",
+      "url": "https://client.replyze.chat/api/mcp",
+      "headers": { "Authorization": "Bearer ${input:replyze-api-key}" }
+    }
+  }
+}

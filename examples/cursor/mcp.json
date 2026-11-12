@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "replyze": {
+      "url": "https://client.replyze.chat/api/mcp",
+      "headers": { "Authorization": "Bearer YOUR_API_KEY" }
+    }
+  }
+}
