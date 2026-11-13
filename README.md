@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://replyze.chat/?utm_source=github&utm_medium=replyze-mcp">
+  <a href="https://replyze.chat/?utm_source=github&utm_medium=referral&utm_campaign=replyze-mcp">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Replyze/.github/main/assets/logo-on-dark.png">
       <img src="https://raw.githubusercontent.com/Replyze/.github/main/assets/logo-on-light.png" alt="Replyze" height="48">
@@ -9,13 +9,13 @@
 
 # Replyze MCP server: your customer support inbox in Claude, Cursor and VS Code
 
-The Replyze [MCP](https://modelcontextprotocol.io) server lets an AI assistant work with your customer support: find and read conversations, reply to customers, leave internal notes for your team, assign conversations, look up contacts and search the knowledge base your support AI answers from. It is a **remote server**: you give your assistant a URL and an API key. There is nothing to install or run. [Replyze](https://replyze.chat/?utm_source=github&utm_medium=replyze-mcp) is AI customer support: an AI agent that answers from your docs, live chat for your website, and one inbox for chat, email, WhatsApp and Telegram.
+The Replyze [MCP](https://modelcontextprotocol.io) server lets an AI assistant work with your customer support: find and read conversations, reply to customers, leave internal notes for your team, assign conversations, look up contacts and search the knowledge base your support AI answers from. It is a **remote server**: you give your assistant a URL and an API key. There is nothing to install or run. [Replyze](https://replyze.chat/?utm_source=github&utm_medium=referral&utm_campaign=replyze-mcp) is AI customer support: an AI agent that answers from your docs, live chat for your website, and one inbox for chat, email, WhatsApp and Telegram.
 
-**[Create a free account](https://client.replyze.chat/register?utm_source=github&utm_medium=replyze-mcp&utm_content=cta-top)** · [Live demo](https://replyze.chat/?utm_source=github&utm_medium=replyze-mcp&utm_content=live-demo) · [Docs](https://github.com/Replyze/replyze)
+**[Create a free account](https://client.replyze.chat/register?utm_source=github&utm_medium=referral&utm_campaign=replyze-mcp&utm_content=cta-top)** · [Live demo](https://replyze.chat/?utm_source=github&utm_medium=referral&utm_campaign=replyze-mcp&utm_content=live-demo) · [Docs](https://github.com/Replyze/replyze)
 
 ## Quickstart
 
-1. **Make an API key.** [Create a free account](https://client.replyze.chat/register?utm_source=github&utm_medium=replyze-mcp&utm_content=quickstart), open **Settings → Integrations → Developer** and create a key. For a first try, tick only the read scopes (`conversations:read`, `contacts:read`, `knowledge:read`): the assistant can look everything up but can't write to a customer.
+1. **Make an API key.** [Create a free account](https://client.replyze.chat/register?utm_source=github&utm_medium=referral&utm_campaign=replyze-mcp&utm_content=quickstart), open **Settings → Integrations → Developer** and create a key. For a first try, tick only the read scopes (`conversations:read`, `contacts:read`, `knowledge:read`): the assistant can look everything up but can't write to a customer.
 2. **Add the server to your assistant.** In Claude Code:
 
    ```bash
@@ -89,7 +89,7 @@ Every tool carries MCP annotations: the read tools are `readOnlyHint: true`, and
 
 In the Replyze dashboard: **Settings → Integrations → Developer**, create a key and tick the scopes it needs. Owners and admins can make keys. The key (`rpz_live_...`) is shown once; it acts as the workspace, not as a person, and you can revoke it at any time.
 
-Whether a workspace has the API and the MCP server depends on its plan ([pricing](https://replyze.chat/pricing?utm_source=github&utm_medium=replyze-mcp)); without it, the server answers `403` with `plan_required`. No account yet? [Sign up](https://client.replyze.chat/register?utm_source=github&utm_medium=replyze-mcp).
+Whether a workspace has the API and the MCP server depends on its plan ([pricing](https://replyze.chat/pricing?utm_source=github&utm_medium=referral&utm_campaign=replyze-mcp)); without it, the server answers `403` with `plan_required`. No account yet? [Sign up](https://client.replyze.chat/register?utm_source=github&utm_medium=referral&utm_campaign=replyze-mcp).
 
 Start with a read-only key (`conversations:read`, `contacts:read`, `knowledge:read`): the assistant can look everything up but cannot write to a customer.
 
