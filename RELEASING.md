@@ -14,8 +14,8 @@ This repository documents a hosted server, so there is no package to build or pu
 
 The registry gives the `io.github.Replyze/*` namespace only to someone who can prove they are an **Owner** of the Replyze GitHub organization. The browser login (`mcp-publisher login github`) can't prove that at the moment ([registry issue #1468](https://github.com/modelcontextprotocol/registry/issues/1468)), so use one of these:
 
-1. **GitHub Actions (no secret needed).** Merge to `main`, then Actions → **Publish to MCP Registry** → **Run workflow**. The workflow ([`publish-mcp-registry.yml`](.github/workflows/publish-mcp-registry.yml)) signs in with the run's OIDC token, which names the organization.
-2. **From a computer**, as an Owner of the organization, with a classic personal access token that has the `read:org` scope (and no repository scopes):
+1. **GitHub Actions (no secret needed).** Merge to `main`, then Actions → **Publish to MCP Registry** → **Run workflow**. The workflow ([`publish-mcp-registry.yml`](.github/workflows/publish-mcp-registry.yml)) signs in with the run's OIDC token, which names the organization. Only its `publish` job gets `id-token: write` (and `contents: read`), it runs only on `main`, and `mcp-publisher` is a pinned version checked against its sha256. The first publish works the same way: there is no token to create and nothing to delete afterwards.
+2. **From a computer** (only if Actions can't be used), as an Owner of the organization, with a classic personal access token that has only the `read:org` scope and a 1-day expiration; delete it right after:
 
    ```bash
    mcp-publisher login github --token <token>
