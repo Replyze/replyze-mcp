@@ -194,11 +194,13 @@ Use it to let customers ask your docs from their own assistant: put the URL on y
 For client authors and debugging:
 
 - Transport: Streamable HTTP, stateless. JSON-RPC 2.0 messages are POSTed to the URL and each request gets one JSON answer. There is no event stream and no session; with a valid key, GET and DELETE answer 405.
-- Protocol versions `2025-06-18`, `2025-03-26` and `2024-11-05`: `initialize` answers in the client's version when it is one of these, and in `2025-06-18` otherwise. A request whose `MCP-Protocol-Version` header names another version gets `400`; that is how clients that speak both the `2026-07-28` revision and the `initialize`-based ones find out to fall back to `initialize`.
-- Methods: `initialize`, `ping`, `tools/list`, `tools/call`. Notifications get `202` with no body. Batches (older clients) are accepted.
+- Protocol versions: `2026-07-28`, and the `initialize`-based `2025-11-25`, `2025-06-18`, `2025-03-26` and `2024-11-05`. Clients that speak `2026-07-28` find it with `server/discover`; the others use `initialize` as before.
+- `2026-07-28` has no handshake. Every request names the version and the client's capabilities in `params._meta` (`io.modelcontextprotocol/protocolVersion`, `io.modelcontextprotocol/clientCapabilities`) and repeats them in headers: `MCP-Protocol-Version`, `Mcp-Method`, and `Mcp-Name` on `tools/call`. A missing header or one that disagrees with the body gets `400`. Every result carries `resultType: "complete"` and the server's name and version in `_meta["io.modelcontextprotocol/serverInfo"]`. `server/discover` and `tools/list` say how long a client may reuse them: `ttlMs: 300000` (5 minutes) and `cacheScope: "private"`, because the tools depend on the key.
+- The `initialize`-based versions: `initialize` answers in the client's version when it is one of the four, and in `2025-11-25` otherwise. Their answers have no `resultType` and no caching hints.
+- Methods: `server/discover`, `tools/list` and `tools/call` in `2026-07-28`; `initialize`, `ping`, `tools/list` and `tools/call` in the older versions. Notifications get `202` with no body. Batches are accepted from older clients only. The tool list doesn't push changes (`listChanged: false`), so there is no `subscriptions/listen`.
 - Tool results come as text (JSON) and as `structuredContent`. A tool that fails returns `isError: true` with a message.
 
-Try it with cURL ([`examples/curl.sh`](examples/curl.sh) runs these):
+Try it with cURL ([`examples/curl.sh`](examples/curl.sh) runs both flows: `initialize` in `2025-11-25`, then `server/discover` and a tool call in `2026-07-28`). Without the `2026-07-28` metadata, a request is answered the way the older versions are:
 
 ```bash
 curl -s https://client.replyze.chat/api/mcp \
@@ -212,7 +214,19 @@ curl -s https://client.replyze.chat/api/mcp \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"search_knowledge","arguments":{"query":"How long does shipping take?"}}}'
 ```
 
-The [MCP Inspector](https://github.com/modelcontextprotocol/inspector) works too: transport Streamable HTTP, the URL above and the `Authorization` header.
+The same call in `2026-07-28`:
+
+```bash
+curl -s https://client.replyze.chat/api/mcp \
+  -H "Authorization: Bearer $REPLYZE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "MCP-Protocol-Version: 2026-07-28" \
+  -H "Mcp-Method: tools/call" \
+  -H "Mcp-Name: search_knowledge" \
+  -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"search_knowledge","arguments":{"query":"How long does shipping take?"},"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{}}}}'
+```
+
+The [MCP Inspector](https://github.com/modelcontextprotocol/inspector) works too: transport Streamable HTTP, the URL above and the `Authorization` header. Its CLI uses `2026-07-28` with `--protocol-era auto` (or `modern`) and `2025-11-25` by default.
 
 ## Errors
 
@@ -220,16 +234,26 @@ The HTTP status says what went wrong and the body is a JSON-RPC error whose `dat
 
 | Status | `data.code` | Meaning |
 |---|---|---|
-| 400 | none | The body isn't JSON (JSON-RPC `-32700`), or the `MCP-Protocol-Version` header names a version the server doesn't speak (`-32600`, with the supported versions in the message). |
 | 401 | `missing_api_key` | No key was sent. Send `Authorization: Bearer <key>`. |
 | 401 | `invalid_api_key`, `api_key_revoked`, `api_key_expired` | The key doesn't work any more. Make a new one. |
 | 403 | `plan_required` | The workspace's plan doesn't include the API. |
 | 403 | `workspace_suspended` | The workspace is suspended. |
 | 429 | `rate_limited` | Too many requests. Wait for `Retry-After` seconds. |
 
-The key is checked first: without a valid one, every request gets the `401` above, whatever its method.
+The key is checked first: without a valid one, every request gets the `401` above, whatever its method or protocol version.
 
-With HTTP `200`, a JSON-RPC error means the request itself was wrong: `-32601` for an unknown method, `-32602` for an unknown tool or a tool the key's scopes don't cover (then `data.required_scope` names the scope it needs). A tool that ran but failed answers a normal result with `isError: true`, and `structuredContent` holds `error` and a `message` the assistant can show: `invalid_arguments` when the arguments don't fit the tool's schema, otherwise a code such as `not_found` or `validation_failed`.
+With a valid key, these are about the request itself (no `data.code`):
+
+| Status | JSON-RPC code | Meaning |
+|---|---|---|
+| 400 | `-32700` | The body isn't JSON. |
+| 400 | `-32022` | The `MCP-Protocol-Version` header, or `_meta` in `2026-07-28`, names a version the server doesn't speak. `data.supported` lists the ones it does, `data.requested` the one you sent. |
+| 400 | `-32020` | `2026-07-28`: the `MCP-Protocol-Version`, `Mcp-Method` or `Mcp-Name` header is missing or disagrees with the body, or `initialize` was sent with `MCP-Protocol-Version: 2026-07-28`. |
+| 400 | `-32602` | `2026-07-28`: `params._meta` lacks `io.modelcontextprotocol/protocolVersion` or `io.modelcontextprotocol/clientCapabilities`, or one of its values has the wrong type. |
+| 400 | `-32600` | `2026-07-28`: a batch, or a body that isn't a JSON-RPC 2.0 request. |
+| 404 | `-32601` | `2026-07-28`: a method the server doesn't have, including `initialize` and `ping`, which that version doesn't define. |
+
+With HTTP `200`, a JSON-RPC error means the request itself was wrong: `-32601` for an unknown method (older versions), `-32602` for an unknown tool or a tool the key's scopes don't cover (then `data.required_scope` names the scope it needs). A tool that ran but failed answers a normal result with `isError: true`, and `structuredContent` holds `error` and a `message` the assistant can show: `invalid_arguments` when the arguments don't fit the tool's schema, otherwise a code such as `not_found` or `validation_failed`.
 
 ## Related
 
@@ -237,7 +261,7 @@ With HTTP `200`, a JSON-RPC error means the request itself was wrong: `-32601` f
 - [add-live-chat-to-website](https://github.com/Replyze/add-live-chat-to-website): the chat on any website, platform by platform
 - [REST API reference (OpenAPI 3.1)](https://client.replyze.chat/api/v1/openapi.json)
 
-The endpoints, transport and errors on this page were checked against the live server in November 2026; the client configs are the ones the Replyze dashboard gives.
+The endpoints, transport and errors on this page follow the server's source and its test suite, and were checked with the MCP Inspector and the official TypeScript and Python SDKs in November 2026; the client configs are the ones the Replyze dashboard gives.
 
 ## For registries
 
