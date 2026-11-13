@@ -38,4 +38,4 @@ curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.Rep
 | VS Code | Looks names up in its active MCP gallery: `vscode:mcp/by-name/io.github.Replyze/replyze-mcp` | Works only once a gallery VS Code uses lists the server. |
 | [PulseMCP](https://www.pulsemcp.com/submit) | Not taking submissions; picks up the official MCP Registry | Nothing to do. |
 | [Docker MCP Catalog](https://github.com/docker/mcp-registry/blob/main/CONTRIBUTING.md) | A pull request to `docker/mcp-registry` (`task remote-wizard`), reviewed by Docker | Takes remote `streamable-http` servers. |
-| [Claude connectors directory](https://claude.ai/directory/manage) | A submission form, reviewed by Anthropic | Asks for OAuth 2.0 when tools act on a user's account. This server signs in with an API key, so it doesn't qualify until it offers OAuth. |
+| [Claude connectors directory](https://claude.com/docs/connectors/building/submission) | A submission form (`claude.ai/directory/manage`), reviewed by Anthropic | Asks for OAuth 2.0 when tools act on a user's account. This server signs in with an API key, so it doesn't qualify until it offers OAuth. |
