@@ -25,6 +25,6 @@ call '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
 
 echo "== tools/call search_knowledge"
 # The question goes into JSON: escape backslashes and double quotes.
-q=${QUESTION//\/\\}
+q=${QUESTION//\\/\\\\}
 q=${q//\"/\\\"}
 call "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/call\",\"params\":{\"name\":\"search_knowledge\",\"arguments\":{\"query\":\"$q\"}}}"
