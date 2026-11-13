@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "claude-desktop-config.schema.json",
+  "title": "Claude Desktop claude_desktop_config.json (the parts these examples use)",
+  "description": "mcpServers maps a name to a local server Claude Desktop starts: here mcp-remote, which bridges to the remote server.",
+  "type": "object",
+  "required": ["mcpServers"],
+  "additionalProperties": false,
+  "properties": {
+    "mcpServers": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["command", "args"],
+        "additionalProperties": false,
+        "properties": {
+          "command": { "const": "npx" },
+          "args": {
+            "type": "array",
+            "items": { "type": "string" },
+            "prefixItems": [{ "const": "-y" }, { "const": "mcp-remote" }, { "type": "string", "pattern": "^https://" }],
+            "minItems": 3
+          },
+          "env": { "type": "object", "additionalProperties": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

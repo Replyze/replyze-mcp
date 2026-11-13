@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '29 6 * * 1' # Mondays: catch link rot and changes on the live server
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The server.json schema the MCP Registry uses (dated, so it never changes under us)
+  REGISTRY_SCHEMA: https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json
+  MCP_PUBLISHER_VERSION: 1.8.9
+  MCP_PUBLISHER_SHA256: 4d527ca8f1ced0394c962dc925c2a4a4addef441cbefd62501c875e9481823a8
+
+jobs:
+  configs:
+    name: Configs, server.json and scripts
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: python -m pip install --quiet check-jsonschema==0.39.0
+      - name: server.json against the MCP Registry schema
+        run: check-jsonschema --schemafile "$REGISTRY_SCHEMA" server.json
+      - name: Client configs against their schemas
+        run: |
+          check-jsonschema --schemafile .github/schemas/cursor-mcp.schema.json examples/cursor/mcp.json
+          check-jsonschema --schemafile .github/schemas/vscode-mcp.schema.json examples/vscode/mcp.json
+          check-jsonschema --schemafile .github/schemas/claude-desktop-config.schema.json examples/claude-desktop/claude_desktop_config.json
+      - name: Configs, server.json and README agree
+        run: node scripts/check-configs.mjs
+      - name: Script syntax
+        run: |
+          for f in examples/*.sh; do bash -n "$f"; done
+          for f in scripts/*.mjs $(ls examples/*.mjs 2>/dev/null); do node --check "$f"; done
+
+  registry:
+    name: server.json passes mcp-publisher validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Download mcp-publisher (checksum verified)
+        run: |
+          curl -fsSL --retry 3 -o mcp-publisher.tar.gz "https://github.com/modelcontextprotocol/registry/releases/download/v${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz"
+          echo "${MCP_PUBLISHER_SHA256}  mcp-publisher.tar.gz" | sha256sum -c -
+          tar xzf mcp-publisher.tar.gz mcp-publisher
+      - name: Validate (checks with the registry, publishes nothing)
+        run: ./mcp-publisher validate server.json
+
+  live:
+    name: Live server answers as documented
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Error answers without a valid key or help center
+        run: bash scripts/live-check.sh
+
+  links:
+    name: Links
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --max-retries 3 --retry-wait-time 5 --accept 200,206,429 --include-fragments README.md RELEASING.md
+          fail: true

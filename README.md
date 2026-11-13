@@ -9,9 +9,22 @@
 
 # Replyze MCP server: your customer support inbox in Claude, Cursor and VS Code
 
-The Replyze [MCP](https://modelcontextprotocol.io) server lets an AI assistant work with your customer support: find and read conversations, reply to customers, leave internal notes for your team, assign conversations, look up contacts and search the knowledge base your support AI answers from. It is a **remote server**: you give your assistant a URL and an API key. There is nothing to install or run.
+The Replyze [MCP](https://modelcontextprotocol.io) server lets an AI assistant work with your customer support: find and read conversations, reply to customers, leave internal notes for your team, assign conversations, look up contacts and search the knowledge base your support AI answers from. It is a **remote server**: you give your assistant a URL and an API key. There is nothing to install or run. [Replyze](https://replyze.chat/?utm_source=github&utm_medium=replyze-mcp) is AI customer support: an AI agent that answers from your docs, live chat for your website, and one inbox for chat, email, WhatsApp and Telegram.
 
-[Replyze](https://replyze.chat/?utm_source=github&utm_medium=replyze-mcp) is AI customer support: an AI agent that answers from your docs, live chat for your website, and one inbox for chat, email, WhatsApp and Telegram.
+**[Create a free account](https://client.replyze.chat/register?utm_source=github&utm_medium=replyze-mcp&utm_content=cta-top)** · [Live demo](https://replyze.chat/?utm_source=github&utm_medium=replyze-mcp&utm_content=live-demo) · [Docs](https://github.com/Replyze/replyze)
+
+## Quickstart
+
+1. **Make an API key.** [Create a free account](https://client.replyze.chat/register?utm_source=github&utm_medium=replyze-mcp&utm_content=quickstart), open **Settings → Integrations → Developer** and create a key. For a first try, tick only the read scopes (`conversations:read`, `contacts:read`, `knowledge:read`): the assistant can look everything up but can't write to a customer.
+2. **Add the server to your assistant.** In Claude Code:
+
+   ```bash
+   claude mcp add --transport http replyze https://client.replyze.chat/api/mcp \
+     --header "Authorization: Bearer YOUR_API_KEY"
+   ```
+
+   [Claude Desktop](#claude-desktop), [Cursor](#cursor), [VS Code](#vs-code) and [other clients](#other-clients) are below.
+3. **Ask it something**, for example "Which open conversations are waiting on us? Group them by topic."
 
 | Server | URL | Sign-in |
 |---|---|---|
@@ -20,6 +33,7 @@ The Replyze [MCP](https://modelcontextprotocol.io) server lets an AI assistant w
 
 ## Contents
 
+[Quickstart](#quickstart) ·
 [What you can ask](#what-you-can-ask) ·
 [Example](#example) ·
 [Tools](#tools) ·
@@ -57,17 +71,17 @@ What a key can do depends on its scopes. `tools/list` shows only the tools the k
 | Tool | Scope | What it does | Arguments |
 |---|---|---|---|
 | `search_conversations` | `conversations:read` | Finds conversations, newest activity first. Matches the contact's name, email or phone, the subject, and anything the visitor or the team wrote (not internal notes). | `query`, `status` (`open`, `pending`, `snoozed`, `resolved`, `closed`, `spam`), `contact_id`, `assigned_agent_id`, `limit` (1 to 50, default 10); all optional |
-| `get_conversation` | `conversations:read` | One conversation with its latest messages, oldest first: the visitor's messages, the team's replies, the AI's replies and the team's internal notes (marked as such). | `conversation_id`, `message_limit` (1 to 100, default 30) |
+| `get_conversation` | `conversations:read` | One conversation with its latest messages, oldest first: the visitor's messages, the team's replies, the AI's replies and the team's internal notes (marked as such). | `conversation_id` (required), `message_limit` (1 to 100, default 30) |
 | `list_agents` | `conversations:read` | The teammates who answer conversations, with their ids, roles and whether they are online. | none |
 | `send_message` | `conversations:write` | Sends a reply to the customer on the conversation's channel (the chat widget, email, WhatsApp, Telegram or another connected channel). A resolved conversation opens again. | `conversation_id`, `content` (plain text, up to 10,000 characters), `agent_id` (optional: the teammate it is sent as; without it, it is from the team) |
 | `add_note` | `conversations:write` | Adds an internal note the team sees in the inbox and the customer never does. | `conversation_id`, `content`, `agent_id` (optional) |
 | `assign_conversation` | `conversations:write` | Gives a conversation to a teammate and/or a team; `null` takes it off them. | `conversation_id`, `agent_id`, `team_id` (at least one of the two) |
-| `search_contacts` | `contacts:read` | Finds contacts by name, email, phone or company, newest first. | `query`, `limit` (1 to 50, default 10) |
+| `search_contacts` | `contacts:read` | Finds contacts by name, email, phone or company, newest first. | `query` (required), `limit` (1 to 50, default 10) |
 | `get_contact` | `contacts:read` | One contact with their details, custom data and latest conversations. | `contact_id` |
-| `search_knowledge` | `knowledge:read` | Searches what your AI answers from: published knowledge base articles and the website pages and files it learned. Each result says where it comes from. | `query` (2 to 500 characters) |
+| `search_knowledge` | `knowledge:read` | Searches what your AI answers from: published knowledge base articles and the website pages and files it learned. Each result says where it comes from. | `query` (required, 2 to 500 characters) |
 | `get_article` | `knowledge:read` | One knowledge base article with its full text, drafts included. | `article_id` or `slug` |
 
-The other scopes (`contacts:write`, `knowledge:write`, `analytics:read`) are used by the [REST API](https://client.replyze.chat/api/v1/openapi.json), not by MCP tools.
+Every tool carries MCP annotations: the read tools are `readOnlyHint: true`, and `send_message` is `openWorldHint: true` because it reaches someone outside the workspace. The other scopes (`contacts:write`, `knowledge:write`, `analytics:read`) are used by the [REST API](https://github.com/Replyze/replyze#4-rest-api), not by MCP tools.
 
 ## Set up
 
@@ -75,7 +89,7 @@ The other scopes (`contacts:write`, `knowledge:write`, `analytics:read`) are use
 
 In the Replyze dashboard: **Settings → Integrations → Developer**, create a key and tick the scopes it needs. Owners and admins can make keys. The key (`rpz_live_...`) is shown once; it acts as the workspace, not as a person, and you can revoke it at any time.
 
-The API and the MCP server are part of the paid plans and the free trial. See [pricing](https://replyze.chat/pricing?utm_source=github&utm_medium=replyze-mcp). No account yet? [Sign up](https://client.replyze.chat/register?utm_source=github&utm_medium=replyze-mcp).
+Whether a workspace has the API and the MCP server depends on its plan ([pricing](https://replyze.chat/pricing?utm_source=github&utm_medium=replyze-mcp)); without it, the server answers `403` with `plan_required`. No account yet? [Sign up](https://client.replyze.chat/register?utm_source=github&utm_medium=replyze-mcp).
 
 Start with a read-only key (`conversations:read`, `contacts:read`, `knowledge:read`): the assistant can look everything up but cannot write to a customer.
 
@@ -92,7 +106,7 @@ claude mcp add --transport http replyze https://client.replyze.chat/api/mcp \
 
 #### Claude Desktop
 
-Claude Desktop reaches remote servers with an API key through [`mcp-remote`](https://www.npmjs.com/package/mcp-remote), which needs Node.js. Open Settings → Developer → Edit Config, add this to `claude_desktop_config.json`, then restart Claude:
+Claude Desktop reaches remote servers with an API key through [`mcp-remote`](https://github.com/punkpeye/mcp-remote), which needs Node.js. Open Settings → Developer → Edit Config, add this to `claude_desktop_config.json`, then restart Claude:
 
 ```json
 {
@@ -173,14 +187,14 @@ Use it to let customers ask your docs from their own assistant: put the URL on y
 - **Notes stay internal.** `add_note` is seen by your team only.
 - **Scopes limit the damage.** Give a key only the scopes it needs, and make separate keys for separate uses so you can revoke one without the others.
 - **Everything is logged.** Every change, and every read of a conversation or contact, made through MCP is in the workspace's audit log, as with the REST API. A reply sent through MCP records that it came through MCP and which key sent it.
-- **Rate limits.** Requests count against the key's rate limit, as for the REST API. Each answer carries `X-RateLimit-Limit` and `X-RateLimit-Remaining`. The public help center server is rate limited per IP.
+- **Rate limits.** Requests count against the key's rate limit, as for the REST API: 120 a minute per key. Each answer carries `X-RateLimit-Limit`, `X-RateLimit-Remaining` and `X-RateLimit-Reset`. The public help center server is rate limited per IP.
 
 ## Protocol details
 
 For client authors and debugging:
 
-- Transport: Streamable HTTP, stateless. JSON-RPC 2.0 messages are POSTed to the URL and each request gets one JSON answer. There is no event stream and no session; GET and DELETE answer 405.
-- Protocol version `2025-06-18`; clients on `2025-03-26` and `2024-11-05` are answered in their version.
+- Transport: Streamable HTTP, stateless. JSON-RPC 2.0 messages are POSTed to the URL and each request gets one JSON answer. There is no event stream and no session; with a valid key, GET and DELETE answer 405.
+- Protocol versions `2025-06-18`, `2025-03-26` and `2024-11-05`: `initialize` answers in the client's version when it is one of these, and in `2025-06-18` otherwise. A request whose `MCP-Protocol-Version` header names another version gets `400`; that is how clients that speak both the `2026-07-28` revision and the `initialize`-based ones find out to fall back to `initialize`.
 - Methods: `initialize`, `ping`, `tools/list`, `tools/call`. Notifications get `202` with no body. Batches (older clients) are accepted.
 - Tool results come as text (JSON) and as `structuredContent`. A tool that fails returns `isError: true` with a message.
 
@@ -206,13 +220,16 @@ The HTTP status says what went wrong and the body is a JSON-RPC error whose `dat
 
 | Status | `data.code` | Meaning |
 |---|---|---|
+| 400 | none | The body isn't JSON (JSON-RPC `-32700`), or the `MCP-Protocol-Version` header names a version the server doesn't speak (`-32600`, with the supported versions in the message). |
 | 401 | `missing_api_key` | No key was sent. Send `Authorization: Bearer <key>`. |
 | 401 | `invalid_api_key`, `api_key_revoked`, `api_key_expired` | The key doesn't work any more. Make a new one. |
 | 403 | `plan_required` | The workspace's plan doesn't include the API. |
 | 403 | `workspace_suspended` | The workspace is suspended. |
 | 429 | `rate_limited` | Too many requests. Wait for `Retry-After` seconds. |
 
-Inside `tools/call`, a tool the key's scopes don't cover is refused with the scope it needs (`required_scope`), and arguments that don't fit the tool's schema come back as `invalid_arguments`.
+The key is checked first: without a valid one, every request gets the `401` above, whatever its method.
+
+With HTTP `200`, a JSON-RPC error means the request itself was wrong: `-32601` for an unknown method, `-32602` for an unknown tool or a tool the key's scopes don't cover (then `data.required_scope` names the scope it needs). A tool that ran but failed answers a normal result with `isError: true`, and `structuredContent` holds `error` and a `message` the assistant can show: `invalid_arguments` when the arguments don't fit the tool's schema, otherwise a code such as `not_found` or `validation_failed`.
 
 ## Related
 
@@ -221,6 +238,10 @@ Inside `tools/call`, a tool the key's scopes don't cover is refused with the sco
 - [REST API reference (OpenAPI 3.1)](https://client.replyze.chat/api/v1/openapi.json)
 
 The endpoints, transport and errors on this page were checked against the live server in November 2026; the client configs are the ones the Replyze dashboard gives.
+
+## For registries
+
+[`server.json`](server.json) describes this server in the format of the official [MCP Registry](https://registry.modelcontextprotocol.io). How it gets published, and to which other directories: [RELEASING.md](RELEASING.md). CI checks the example configs, `server.json` and the live server's error answers on every push.
 
 ## License
 

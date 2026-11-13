@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cursor-mcp.schema.json",
+  "title": "Cursor mcp.json (the parts these examples use)",
+  "description": "From https://cursor.com/docs/mcp: mcpServers maps a name to a remote server (url, headers) or a local one (command, args, env).",
+  "type": "object",
+  "required": ["mcpServers"],
+  "additionalProperties": false,
+  "properties": {
+    "mcpServers": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["url"],
+            "additionalProperties": false,
+            "properties": {
+              "url": { "type": "string", "pattern": "^https://" },
+              "headers": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1 } }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["command"],
+            "additionalProperties": false,
+            "properties": {
+              "command": { "type": "string" },
+              "args": { "type": "array", "items": { "type": "string" } },
+              "env": { "type": "object", "additionalProperties": { "type": "string" } }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

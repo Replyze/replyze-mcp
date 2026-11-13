@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vscode-mcp.schema.json",
+  "title": "VS Code .vscode/mcp.json (the parts these examples use)",
+  "description": "From https://code.visualstudio.com/docs/agents/reference/mcp-configuration: servers maps a name to a server; inputs are prompted for and referenced as ${input:<id>}.",
+  "type": "object",
+  "required": ["servers"],
+  "additionalProperties": false,
+  "properties": {
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "id", "description"],
+        "additionalProperties": false,
+        "properties": {
+          "type": { "enum": ["promptString", "pickString", "command"] },
+          "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
+          "description": { "type": "string", "minLength": 1 },
+          "password": { "type": "boolean" },
+          "default": { "type": "string" }
+        }
+      }
+    },
+    "servers": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["type", "url"],
+        "additionalProperties": false,
+        "properties": {
+          "type": { "const": "http" },
+          "url": { "type": "string", "pattern": "^https://" },
+          "headers": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1 } }
+        }
+      }
+    }
+  }
+}

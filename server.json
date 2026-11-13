@@ -1,0 +1,34 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.Replyze/replyze-mcp",
+  "title": "Replyze",
+  "description": "Customer support inbox: read and answer conversations, add notes, assign, look up contacts.",
+  "version": "1.0.0",
+  "websiteUrl": "https://github.com/Replyze/replyze-mcp",
+  "repository": {
+    "url": "https://github.com/Replyze/replyze-mcp",
+    "source": "github",
+    "id": "1455890022"
+  },
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/Replyze/.github/main/assets/mark-square.png",
+      "mimeType": "image/png",
+      "sizes": ["512x512"]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://client.replyze.chat/api/mcp",
+      "headers": [
+        {
+          "name": "X-Api-Key",
+          "description": "A Replyze API key (rpz_live_...) from Settings → Integrations → Developer. Its scopes decide which tools you get.",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
